@@ -11,6 +11,8 @@ const getPreparedPeople = (
   sexFilter: string | null,
   queryFilter: string | null,
   centuriesFilter: string[],
+  sortFilter: string | null,
+  orderFilter: string | null,
 ) => {
   let preparedPeople = [...people];
 
@@ -45,6 +47,48 @@ const getPreparedPeople = (
     });
   }
 
+  const isValidSortFilter = (s: string | null) => {
+    if (s === null) {
+      return false;
+    }
+
+    const validSortFilters = ['sex', 'born', 'died', 'name'];
+
+    return validSortFilters.includes(s);
+  };
+
+  if (isValidSortFilter(sortFilter)) {
+    preparedPeople.sort((p1, p2) => {
+      if (
+        (sortFilter === 'name' || sortFilter === 'sex') &&
+        orderFilter === 'desc'
+      ) {
+        return p2[sortFilter].localeCompare(p1[sortFilter]);
+      }
+
+      if (
+        (sortFilter === 'name' || sortFilter === 'sex') &&
+        orderFilter !== 'desc'
+      ) {
+        return p1[sortFilter].localeCompare(p2[sortFilter]);
+      }
+
+      if (
+        (sortFilter === 'born' || sortFilter === 'died') &&
+        orderFilter === 'desc'
+      ) {
+        return p2[sortFilter] - p1[sortFilter];
+      }
+
+      if (
+        (sortFilter === 'born' || sortFilter === 'died') &&
+        orderFilter !== 'desc'
+      ) {
+        return p1[sortFilter] - p2[sortFilter];
+      }
+    });
+  }
+
   return preparedPeople;
 };
 
@@ -57,10 +101,20 @@ export const PeoplePage = () => {
   const sexFilter = searchParams.get('sex');
   const queryFilter = searchParams.get('query');
   const centuriesFilter = searchParams.getAll('centuries');
+  const sortFilter = searchParams.get('sort');
+  const orderFilter = searchParams.get('order');
 
   const preparedPeople = useMemo(
-    () => getPreparedPeople(people, sexFilter, queryFilter, centuriesFilter),
-    [people, sexFilter, queryFilter, centuriesFilter],
+    () =>
+      getPreparedPeople(
+        people,
+        sexFilter,
+        queryFilter,
+        centuriesFilter,
+        sortFilter,
+        orderFilter,
+      ),
+    [people, sexFilter, queryFilter, centuriesFilter, sortFilter, orderFilter],
   );
 
   useEffect(() => {
@@ -98,14 +152,20 @@ export const PeoplePage = () => {
                 </p>
               )}
 
-              <p>There are no people matching the current search criteria</p>
-              {people.length > 0 && !loading && !error && (
-                <div className="block">
-                  <div className="box table-container">
-                    <PeopleTable people={preparedPeople} />
-                  </div>
-                </div>
+              {preparedPeople.length === 0 && !loading && !error && (
+                <p>There are no people matching the current search criteria</p>
               )}
+              {/* eslint-disable */}
+              {preparedPeople.length > 0 &&
+                people.length > 0 &&
+                !loading &&
+                !error && (
+                  <div className="block">
+                    <div className="box table-container">
+                      <PeopleTable people={preparedPeople} />
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </div>
