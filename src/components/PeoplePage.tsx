@@ -59,32 +59,25 @@ const getPreparedPeople = (
 
   if (isValidSortFilter(sortFilter)) {
     preparedPeople.sort((p1, p2) => {
-      if (
-        (sortFilter === 'name' || sortFilter === 'sex') &&
-        orderFilter === 'desc'
-      ) {
-        return p2[sortFilter].localeCompare(p1[sortFilter]);
-      }
+      switch (sortFilter) {
+        case 'name':
+        case 'sex':
+          if (orderFilter === 'desc') {
+            return p2[sortFilter].localeCompare(p1[sortFilter]);
+          } else {
+            return p1[sortFilter].localeCompare(p2[sortFilter]);
+          }
 
-      if (
-        (sortFilter === 'name' || sortFilter === 'sex') &&
-        orderFilter !== 'desc'
-      ) {
-        return p1[sortFilter].localeCompare(p2[sortFilter]);
-      }
+        case 'born':
+        case 'died':
+          if (orderFilter === 'desc') {
+            return p2[sortFilter] - p1[sortFilter];
+          } else {
+            return p1[sortFilter] - p2[sortFilter];
+          }
 
-      if (
-        (sortFilter === 'born' || sortFilter === 'died') &&
-        orderFilter === 'desc'
-      ) {
-        return p2[sortFilter] - p1[sortFilter];
-      }
-
-      if (
-        (sortFilter === 'born' || sortFilter === 'died') &&
-        orderFilter !== 'desc'
-      ) {
-        return p1[sortFilter] - p2[sortFilter];
+        default:
+          return 0;
       }
     });
   }
